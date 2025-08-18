@@ -293,14 +293,6 @@ export const StudyCard: React.FC<StudyCardProps> = ({
             sx={{ mb: 2 }}
           />
 
-          {enteredSynonyms.length > 0 && (
-            <Box mb={2}>
-              <Alert icon={<Info />} severity="info">
-                Entered synonyms: <strong>{enteredSynonyms.join(', ')}</strong>
-              </Alert>
-            </Box>
-          )}
-
           {isExampleRevealed && (
             <Box mb={2}>
               <Alert icon={<Info />} severity="info">
@@ -317,7 +309,12 @@ export const StudyCard: React.FC<StudyCardProps> = ({
                 </Alert>
               ) : result.isSynonym ? (
                 <Alert icon={<Info />} severity="info">
-                  Это синоним. Попробуйте другое слово.
+                  This is synonym, try another word. Entered synonyms:<br></br>
+                  <ul style={{ margin: 0, paddingLeft: 20 }}>
+                    {enteredSynonyms.map((syn, idx) => (
+                      <li key={idx}><strong>{syn}</strong></li>
+                    ))}
+                  </ul>
                 </Alert>
               ) : result.isPartial ? (
                 <Alert icon={<Info />} severity="info">
