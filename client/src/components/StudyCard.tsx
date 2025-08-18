@@ -319,6 +319,16 @@ export const StudyCard: React.FC<StudyCardProps> = ({
           )}
 
           <Button
+            variant="text"
+            color="secondary"
+            fullWidth
+            sx={{ mt: 1, mb: 1 }}
+            onClick={() => setIsAnswerRevealed(true)}
+          >
+            Show Answer
+          </Button>
+
+          <Button
             type="submit"
             variant="contained"
             fullWidth
