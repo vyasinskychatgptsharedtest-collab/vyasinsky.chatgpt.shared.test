@@ -35,6 +35,8 @@ export const StudyCard: React.FC<StudyCardProps> = ({
   onWordCompleted, 
   favoriteOnly = false 
 }) => {
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [shouldFocusInput, setShouldFocusInput] = useState(false);
   const [currentWord, setCurrentWord] = useState<Word | null>(null);
   const [answer, setAnswer] = useState('');
   const [result, setResult] = useState<CheckAnswerResponse | null>(null);
@@ -51,7 +53,7 @@ export const StudyCard: React.FC<StudyCardProps> = ({
   const autoAdvanceTimeoutRef = useRef<number | null>(null);
 
   const loadNextWord = async (excludeCurrent: boolean = false) => {
-    try {
+  try {
       setLoading(true);
       setError(null);
       const word = await wordsApi.getStudyWord(
@@ -61,13 +63,23 @@ export const StudyCard: React.FC<StudyCardProps> = ({
       setCurrentWord(word);
       setAnswer('');
       setResult(null);
-      setIsExampleRevealed(false);
+  setIsExampleRevealed(false);
+  setShouldFocusInput(true);
     } catch (err: unknown) {
       setError('Failed to load word');
     } finally {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (shouldFocusInput) {
+      setShouldFocusInput(false);
+      setTimeout(() => {
+        inputRef.current?.focus();
+      }, 0);
+    }
+  }, [shouldFocusInput, currentWord]);
 
   useEffect(() => {
     loadNextWord();
@@ -256,7 +268,7 @@ export const StudyCard: React.FC<StudyCardProps> = ({
             value={answer}
             onChange={(e) => setAnswer(e.target.value)}
             disabled={loading || result?.isCorrect || isExampleRevealed}
-            autoFocus
+            inputRef={inputRef}
             sx={{ mb: 2 }}
           />
 
