@@ -51,6 +51,7 @@ export const StudyCard: React.FC<StudyCardProps> = ({
     exampleEn: '',
     exampleRu: '',
   });
+  const [enteredSynonyms, setEnteredSynonyms] = useState<string[]>([]);
   const autoAdvanceTimeoutRef = useRef<number | null>(null);
 
   const loadNextWord = async (excludeCurrent: boolean = false) => {
@@ -97,10 +98,13 @@ export const StudyCard: React.FC<StudyCardProps> = ({
         wordId: currentWord.id,
         answer: answer.trim(),
       });
-      
       setResult(result);
-      
+      if (result.isSynonym) {
+        setEnteredSynonyms((prev) => [...prev, answer]);
+        setAnswer('');
+      }
       if (result.isCorrect) {
+        setEnteredSynonyms([]);
         if (autoAdvanceTimeoutRef.current) {
           window.clearTimeout(autoAdvanceTimeoutRef.current);
           autoAdvanceTimeoutRef.current = null;
@@ -278,6 +282,7 @@ export const StudyCard: React.FC<StudyCardProps> = ({
         </Box>
 
   <form onSubmit={handleSubmit}>
+
           <TextField
             fullWidth
             label="Enter English word"
@@ -287,6 +292,14 @@ export const StudyCard: React.FC<StudyCardProps> = ({
             inputRef={inputRef}
             sx={{ mb: 2 }}
           />
+
+          {enteredSynonyms.length > 0 && (
+            <Box mb={2}>
+              <Alert icon={<Info />} severity="info">
+                Entered synonyms: <strong>{enteredSynonyms.join(', ')}</strong>
+              </Alert>
+            </Box>
+          )}
 
           {isExampleRevealed && (
             <Box mb={2}>
@@ -324,6 +337,7 @@ export const StudyCard: React.FC<StudyCardProps> = ({
             fullWidth
             sx={{ mt: 1, mb: 1 }}
             onClick={() => setIsAnswerRevealed(true)}
+            disabled={isAnswerRevealed || Boolean(result && !result.isCorrect && !result.isPartial && !result.isSynonym)}
           >
             Show Answer
           </Button>
@@ -332,25 +346,11 @@ export const StudyCard: React.FC<StudyCardProps> = ({
             type="submit"
             variant="contained"
             fullWidth
-            disabled={loading || !answer.trim() || result?.isCorrect || isExampleRevealed}
+            disabled={loading || !answer.trim() || result?.isCorrect || isExampleRevealed || isAnswerRevealed || Boolean(result && !result.isCorrect && !result.isPartial && !result.isSynonym)}
           >
             {loading ? 'Checking...' : 'Check Answer'}
           </Button>
         </form>
-
-        {result && !result.isCorrect && (
-          <Button
-            variant="outlined"
-            fullWidth
-            sx={{ mt: 1 }}
-            onClick={() => {
-              setAnswer('');
-              setResult(null);
-            }}
-          >
-            Try Again
-          </Button>
-        )}
 
         <Button
           variant="text"
@@ -358,6 +358,7 @@ export const StudyCard: React.FC<StudyCardProps> = ({
           sx={{ mt: 1 }}
           disabled={loading}
           onClick={() => {
+            setEnteredSynonyms([]);
             if (autoAdvanceTimeoutRef.current) {
               window.clearTimeout(autoAdvanceTimeoutRef.current);
               autoAdvanceTimeoutRef.current = null;
