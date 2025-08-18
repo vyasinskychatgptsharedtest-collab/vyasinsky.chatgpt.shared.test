@@ -35,6 +35,7 @@ export const StudyCard: React.FC<StudyCardProps> = ({
   onWordCompleted, 
   favoriteOnly = false 
 }) => {
+  const [isAnswerRevealed, setIsAnswerRevealed] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
   const [shouldFocusInput, setShouldFocusInput] = useState(false);
   const [currentWord, setCurrentWord] = useState<Word | null>(null);
@@ -64,6 +65,7 @@ export const StudyCard: React.FC<StudyCardProps> = ({
       setAnswer('');
       setResult(null);
   setIsExampleRevealed(false);
+  setIsAnswerRevealed(false);
   setShouldFocusInput(true);
     } catch (err: unknown) {
       setError('Failed to load word');
@@ -259,15 +261,29 @@ export const StudyCard: React.FC<StudyCardProps> = ({
               />
             )}
           </Box>
+          {isAnswerRevealed && (
+            <Box mt={2} mb={1}>
+              <Alert icon={<CheckCircle />} severity="info">
+                Correct answer: <strong>{currentWord.english}</strong>
+              </Alert>
+            </Box>
+          )}
+          {isExampleRevealed && (
+            <Box mb={2}>
+              <Alert icon={<Info />} severity="info">
+                English example revealed. Input is locked. Click Next to continue.
+              </Alert>
+            </Box>
+          )}
         </Box>
 
-        <form onSubmit={handleSubmit}>
+  <form onSubmit={handleSubmit}>
           <TextField
             fullWidth
             label="Enter English word"
             value={answer}
             onChange={(e) => setAnswer(e.target.value)}
-            disabled={loading || result?.isCorrect || isExampleRevealed}
+            disabled={loading || result?.isCorrect || isExampleRevealed || isAnswerRevealed}
             inputRef={inputRef}
             sx={{ mb: 2 }}
           />
