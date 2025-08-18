@@ -10,6 +10,10 @@ import {
   Chip,
   IconButton,
   Tooltip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from '@mui/material';
 import {
   Favorite,
@@ -17,8 +21,9 @@ import {
   CheckCircle,
   Error,
   Info,
+  Edit,
 } from '@mui/icons-material';
-import { Word, CheckAnswerResponse } from '../types';
+import { Word, CheckAnswerResponse, UpdateWordRequest } from '../types';
 import { wordsApi, answersApi } from '../services/api';
 
 interface StudyCardProps {
@@ -36,6 +41,13 @@ export const StudyCard: React.FC<StudyCardProps> = ({
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isExampleRevealed, setIsExampleRevealed] = useState(false);
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [formData, setFormData] = useState<UpdateWordRequest>({
+    english: '',
+    russian: '',
+    exampleEn: '',
+    exampleRu: '',
+  });
   const autoAdvanceTimeoutRef = useRef<number | null>(null);
 
   const loadNextWord = async (excludeCurrent: boolean = false) => {
@@ -103,6 +115,33 @@ export const StudyCard: React.FC<StudyCardProps> = ({
     }
   };
 
+  const handleEditOpen = () => {
+    if (!currentWord) return;
+    setFormData({
+      english: currentWord.english,
+      russian: currentWord.russian,
+      exampleEn: currentWord.exampleEn,
+      exampleRu: currentWord.exampleRu,
+    });
+    setEditDialogOpen(true);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!currentWord) return;
+
+    try {
+      await wordsApi.update(currentWord.id, formData);
+      setEditDialogOpen(false);
+      if (autoAdvanceTimeoutRef.current) {
+        window.clearTimeout(autoAdvanceTimeoutRef.current);
+        autoAdvanceTimeoutRef.current = null;
+      }
+      loadNextWord(true);
+    } catch (err: unknown) {
+      setError('Failed to save word');
+    }
+  };
+
   const handleRevealExample = () => {
     if (!isExampleRevealed) {
       setIsExampleRevealed(true);
@@ -147,17 +186,25 @@ export const StudyCard: React.FC<StudyCardProps> = ({
   }
 
   return (
-    <Card sx={{ minWidth: 400, maxWidth: 600 }}>
-      <CardContent>
+    <>
+      <Card sx={{ minWidth: 400, maxWidth: 600 }}>
+        <CardContent>
         <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
           <Typography variant="h5" component="div">
             {currentWord.russian}
           </Typography>
-          <Tooltip title={currentWord.isFavorite ? 'Remove from favorites' : 'Add to favorites'}>
-            <IconButton onClick={handleToggleFavorite} color="primary">
-              {currentWord.isFavorite ? <Favorite /> : <FavoriteBorder />}
-            </IconButton>
-          </Tooltip>
+          <Box display="flex" alignItems="center">
+            <Tooltip title={currentWord.isFavorite ? 'Remove from favorites' : 'Add to favorites'}>
+              <IconButton onClick={handleToggleFavorite} color="primary">
+                {currentWord.isFavorite ? <Favorite /> : <FavoriteBorder />}
+              </IconButton>
+            </Tooltip>
+            <Tooltip title="Edit word">
+              <IconButton onClick={handleEditOpen} color="primary">
+                <Edit />
+              </IconButton>
+            </Tooltip>
+          </Box>
         </Box>
 
         <Box mb={3}>
@@ -285,7 +332,50 @@ export const StudyCard: React.FC<StudyCardProps> = ({
         >
           Next
         </Button>
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+
+      <Dialog open={editDialogOpen} onClose={() => setEditDialogOpen(false)} maxWidth="sm" fullWidth>
+        <DialogTitle>Edit Word</DialogTitle>
+        <DialogContent>
+          <TextField
+            fullWidth
+            label="English"
+            value={formData.english}
+            onChange={(e) => setFormData({ ...formData, english: e.target.value })}
+            margin="normal"
+          />
+          <TextField
+            fullWidth
+            label="Russian"
+            value={formData.russian}
+            onChange={(e) => setFormData({ ...formData, russian: e.target.value })}
+            margin="normal"
+          />
+          <TextField
+            fullWidth
+            label="Example (English)"
+            value={formData.exampleEn}
+            onChange={(e) => setFormData({ ...formData, exampleEn: e.target.value })}
+            margin="normal"
+            multiline
+            rows={2}
+          />
+          <TextField
+            fullWidth
+            label="Example (Russian)"
+            value={formData.exampleRu}
+            onChange={(e) => setFormData({ ...formData, exampleRu: e.target.value })}
+            margin="normal"
+            multiline
+            rows={2}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => setEditDialogOpen(false)}>Cancel</Button>
+          <Button onClick={handleSaveEdit} variant="contained">Save</Button>
+        </DialogActions>
+      </Dialog>
+    </>
   );
 };
