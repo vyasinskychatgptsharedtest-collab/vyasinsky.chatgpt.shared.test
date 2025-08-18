@@ -102,6 +102,7 @@ export const StudyCard: React.FC<StudyCardProps> = ({
       if (result.isSynonym) {
         setEnteredSynonyms((prev) => [...prev, answer]);
         setAnswer('');
+        setShouldFocusInput(true);
       }
       if (result.isCorrect) {
         setEnteredSynonyms([]);
@@ -265,20 +266,6 @@ export const StudyCard: React.FC<StudyCardProps> = ({
               />
             )}
           </Box>
-          {isAnswerRevealed && (
-            <Box mt={2} mb={1}>
-              <Alert icon={<CheckCircle />} severity="info">
-                Correct answer: <strong>{currentWord.english}</strong>
-              </Alert>
-            </Box>
-          )}
-          {isExampleRevealed && (
-            <Box mb={2}>
-              <Alert icon={<Info />} severity="info">
-                English example revealed. Input is locked. Click Next to continue.
-              </Alert>
-            </Box>
-          )}
         </Box>
 
   <form onSubmit={handleSubmit}>
@@ -292,6 +279,14 @@ export const StudyCard: React.FC<StudyCardProps> = ({
             inputRef={inputRef}
             sx={{ mb: 2 }}
           />
+
+          {isAnswerRevealed && (
+            <Box mb={1}>
+              <Alert icon={<CheckCircle />} severity="info">
+                Correct answer: <strong>{currentWord.english}</strong>
+              </Alert>
+            </Box>
+          )}
 
           {isExampleRevealed && (
             <Box mb={2}>
