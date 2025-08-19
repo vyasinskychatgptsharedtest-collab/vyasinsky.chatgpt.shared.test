@@ -278,6 +278,7 @@ export const StudyCard: React.FC<StudyCardProps> = ({
             disabled={loading || result?.isCorrect || isExampleRevealed || isAnswerRevealed}
             inputRef={inputRef}
             sx={{ mb: 2 }}
+            autoComplete="off"
           />
 
           {isAnswerRevealed && (
